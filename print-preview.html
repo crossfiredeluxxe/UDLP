@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Print Preview</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="print-preview-container">
+        <img src="images/doc.webp" alt="Document Template" id="doc-template">
+        <div id="OutputHeader">
+            <span id="print-date"></span>
+        </div>
+        <div id="OutputTable">
+            <table id="print-content">
+                <tbody>
+                    <!-- Entries will be populated here -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        function getFormattedDate(dateString) {
+            const date = new Date(dateString + 'T00:00:00');
+            const options = { year: '2-digit', month: '2-digit', day: '2-digit' };
+            return date.toLocaleDateString('en-US', options);
+        }
+
+        function displayPrintEntries(printDate) {
+            let log = JSON.parse(localStorage.getItem('log')) || [];
+            log = log.filter(entry => entry.date === printDate).sort((a, b) => a.time.localeCompare(b.time));
+            const printContent = document.querySelector('#print-content tbody');
+            printContent.innerHTML = '';
+
+            log.forEach(entry => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td style="width: 8.6%";>${entry.category}</td>
+                    <td style="width: 1%";>${entry.time}</td>
+                    <td style="width: 1%";>${entry.user}</td>
+                    <td>${entry.data}</td>
+                    `;
+                printContent.appendChild(row);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            const printDate = params.get('date');
+
+            if (printDate) {
+                const formattedDate = getFormattedDate(printDate);
+                document.getElementById('print-date').innerText = formattedDate;
+                displayPrintEntries(printDate);
+            } else {
+                console.error('No date found in URL parameters');
+            }
+        });
+    </script>
+</body>
+</html>

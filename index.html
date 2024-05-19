@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified Data Logging Platform</title>
+    <link rel="icon" id="custom-favicon" href="default-favicon.ico">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="top-banner" class="banner"><span id="top-banner-text">UNCONFIGURED</span></div>
+
+    <div id="header">
+        <div id="logo-container">
+            <img id="custom-logo-img" src="images/logo.png" alt="Logo">
+            <div id="app-title">Unified Data Logging Platform</div>
+        </div>
+        <div id="time-container">
+            <div id="time-display">
+                <div id="local-time">
+                    <div id="local-time-value">LOCAL: 00:00</div>
+                    <div id="gmt-time">ZULU: <span id="gmt-time-value">0000Z</span></div>
+                    <div id="current-date">MM/DD</div>
+                </div>
+            </div>
+            <div id="header-buttons">
+                <button id="config-button" onclick="openConfigPanel()">
+                    <img src="images/settings.svg" alt="Settings" style="height: 24px;">
+                </button>
+                <button id="print-button" onclick="openPrintPreview()">
+                    <img src="images/print.svg" alt="Print" style="height: 24px;">
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="wrapper">
+        <div id="data-container">
+            <div id="data-entry">
+                <h3>Data Entry</h3>
+                <label for="event-category">Event Category:</label>
+                <select id="event-category" onchange="autoFillData()"></select>
+                <br>
+                <label for="entry-time">Time:</label>
+                <input type="text" id="entry-time" pattern="\d{4}" placeholder="HHMM">
+                <label for="entry-date" class="date-label">Date:</label>
+                <input type="date" id="entry-date" onchange="updateEntryDate()">
+                <label for="user-select" class="user-label">Users:</label>
+                <select id="user-select"></select>
+                <label for="entry-level" class="level-label">Level:</label>
+                <select id="entry-level" onchange="updateSubmissionPlaceholder()"></select>
+                <br>
+                <label for="data-submission">Data Submission:</label>
+                <textarea id="data-submission" placeholder="Enter data"></textarea>
+                <br>
+                <button onclick="submitEntry()">Submit Entry</button>
+            </div>
+            <div id="data-display">
+                <div id="data-display-header">
+                    <h3>Data Display</h3>
+                    <label for="display-date">Display Date:</label>
+                    <input type="date" id="display-date" onchange="displayEntries()">
+                </div>
+                <div id="data-display-table-container">
+                    <table id="display-content">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Time</th>
+                                <th>User</th>
+                                <th>Data</th>
+                                <th style="width:10px">Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Entries will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="bottom-banner" class="banner"><span id="bottom-banner-text">UNCONFIGURED</span></div>
+
+    <div id="config-panel" class="hidden">
+        <div class="tab">
+            <button class="tablinks" onclick="openTab(event, 'AppSettings')">Application Settings</button>
+            <button class="tablinks" onclick="openTab(event, 'Personnel')">Personnel</button>
+            <button class="tablinks" onclick="openTab(event, 'Events')">Events</button>
+            <button class="tablinks" onclick="openTab(event, 'WorkingSet')">Working Set</button>
+        </div>
+        <div id="AppSettings" class="tabcontent">
+            <h3>Application Settings</h3>
+            <label for="app-name">Application Name:</label>
+            <input type="text" id="app-name" placeholder="Enter application name" onblur="updateAppName()">
+            <br>
+            <label for="banner-level-select">Select Banner Level:</label>
+            <select id="banner-level-select" onchange="updateBannerLevel()"></select>
+            <br>
+            <h3>Level Management</h3>
+            <label for="level-prefix">Level Prefix:</label>
+            <input type="text" id="level-prefix" placeholder="Enter level prefix (e.g., B)">
+            <br>
+            <label for="level-name">Level Name:</label>
+            <input type="text" id="level-name" placeholder="Enter level name (e.g., BASIC)">
+            <br>
+            <label for="level-color">Level Color:</label>
+            <input type="color" id="level-color">
+            <br>
+            <button onclick="addLevel()">Add Level</button>
+            <ul id="level-list"></ul>
+        </div>
+        <div id="Personnel" class="tabcontent">
+            <h3>Personnel</h3>
+            <div id="additions" class="additions-container">
+                <div id="user-creation" class="add-section">
+                    <h4>Add User</h4>
+                    <label for="user-name">User Name:</label>
+                    <input type="text" id="user-name" placeholder="Enter user name">
+                    <br>
+                    <label for="user-initials">User Initials:</label>
+                    <input type="text" id="user-initials" placeholder="Enter user initials">
+                    <br>
+                    <label for="user-shift">Assign Shift:</label>
+                    <select id="user-shift"></select>
+                    <br>
+                    <button onclick="addUser()">Add User</button>
+                </div>
+                <div id="shift-creation" class="add-section">
+                    <h4>Add Shift</h4>
+                    <label for="shift-name">Shift Name:</label>
+                    <input type="text" id="shift-name" placeholder="Enter shift name">
+                    <button onclick="addShift()">Add Shift</button>
+                </div>
+            </div>
+            <div id="existing" class="existing-container">
+                <div id="user-list-container" class="list-section">
+                    <h4>Existing Users</h4>
+                    <div class="scrollable-table">
+                        <table id="user-list">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Initials</th>
+                                    <th>Shift</th>
+                                    <th style="width:10px">Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Users will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div id="shift-list-container" class="list-section">
+                    <h4>Existing Shifts</h4>
+                    <div class="scrollable-table">
+                        <table id="shift-list">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th style="width:10px">Edit</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Shifts will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div id="Events" class="tabcontent">
+            <h3>Events</h3>
+            <label for="event-name">Event Name:</label>
+            <input type="text" id="event-name" placeholder="Enter event name">
+            <br>
+            <label for="event-template">Event Template:</label>
+            <input type="text" id="event-template" placeholder="Enter event template">
+            <button onclick="addEvent()">Add Event</button>
+            <div id="event-list-container">
+                <h4>Existing Events</h4>
+                <div class="scrollable-table">
+                    <table id="event-list">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Template</th>
+                                <th style="width:10px">Edit</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Events will be populated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div id="WorkingSet" class="tabcontent">
+            <h3>Working Set</h3>
+            <div class="upload-download">
+                <label for="upload-config">Upload Config:</label>
+                <input type="file" id="upload-config" onchange="uploadConfig(event)">
+                <br>
+                <label for="download-config">Download Config:</label>
+                <button onclick="downloadConfig()">Download Config</button>
+            </div>
+            <div class="config-options">
+                <label for="config-mode">Config Mode:</label>
+                <select id="config-mode" onchange="switchConfigMode()">
+                    <option value="local">Local</option>
+                    <option value="sharepoint">SharePoint</option>
+                </select>
+                <br>
+                <label for="sharepoint-url">SharePoint URL:</label>
+                <input type="text" id="sharepoint-url" placeholder="Enter SharePoint URL">
+            </div>
+        </div>
+        <div class="config-actions">
+            <button onclick="saveAndReload()">Save and Reload</button>
+        </div>
+    </div>
+
+    <div id="edit-entry-panel" class="hidden">
+        <div class="edit-content">
+            <h3>Edit Entry</h3>
+            <input type="hidden" id="edit-id">
+            <label for="edit-category">Category:</label>
+            <select id="edit-category"></select>
+            <br>
+            <label for="edit-time">Time:</label>
+            <input type="text" id="edit-time" pattern="\d{4}" placeholder="HHMM">
+            <label for="edit-date" class="date-label">Date:</label>
+            <input type="date" id="edit-date">
+            <label for="edit-user" class="user-label">User:</label>
+            <select id="edit-user"></select>
+            <label for="edit-level">Level:</label>
+            <select id="edit-level"></select>
+            <br>
+            <label for="edit-data">Data:</label>
+            <textarea id="edit-data" placeholder="Enter data"></textarea>
+            <br>
+            <button onclick="saveEdit()">Save</button>
+            <button onclick="deleteEntry()">Delete</button>
+            <button onclick="closeEditEntryPanel()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="edit-user-panel" class="hidden">
+        <div class="edit-content">
+            <h3>Edit User</h3>
+            <label for="edit-user-name">Name:</label>
+            <input type="text" id="edit-user-name">
+            <br>
+            <label for="edit-user-initials">Initials:</label>
+            <input type="text" id="edit-user-initials">
+            <br>
+            <label for="edit-user-shift">Shift:</label>
+            <select id="edit-user-shift"></select>
+            <br>
+            <button onclick="saveUserEdit()">Save</button>
+            <button onclick="deleteUser()">Delete</button>
+            <button onclick="closeUserEditPanel()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="edit-shift-panel" class="hidden">
+        <div class="edit-content">
+            <h3>Edit Shift</h3>
+            <label for="edit-shift-name">Name:</label>
+            <input type="text" id="edit-shift-name">
+            <br>
+            <button onclick="saveShiftEdit()">Save</button>
+            <button onclick="deleteShift()">Delete</button>
+            <button onclick="closeShiftEditPanel()">Cancel</button>
+        </div>
+    </div>
+
+    <div id="edit-event-panel" class="hidden">
+        <div class="edit-content">
+            <h3>Edit Event</h3>
+            <label for="edit-event-name">Name:</label>
+            <input type="text" id="edit-event-name">
+            <br>
+            <label for="edit-event-template">Template:</label>
+            <input type="text" id="edit-event-template">
+            <br>
+            <button onclick="saveEventEdit()">Save</button>
+            <button onclick="deleteEvent()">Delete</button>
+            <button onclick="closeEventEditPanel()">Cancel</button>
+        </div>
+    </div>
+
+    <script src="js/xlsx.full.min.js"></script>
+    <script src="js/spreadsheet.js"></script>
+    <script src="js/config.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
